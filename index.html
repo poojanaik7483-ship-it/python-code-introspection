@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Code Documenter</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        input, button { padding: 10px; margin: 5px; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h2>Upload a Python File for AI Documentation</h2>
+    
+    <!-- The file upload button -->
+    <input type="file" id="file-input" accept=".py">
+    <button onclick="uploadFile()">Generate README</button>
+    
+    <pre id="doc-display">Awaiting file upload...</pre>
+
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById("file-input");
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert("Please select a Python file first.");
+                return;
+            }
+            
+            document.getElementById("doc-display").innerText = "Analyzing code and generating file... (Please wait)";
+            
+            const formData = new FormData();
+            formData.append("file", file);
+            
+            const response = await fetch("http://localhost:8000/generate-readme", {
+                method: "POST",
+                body: formData
+            });
+            
+            // Receive the data as a raw File Blob
+            const blob = await response.blob(); 
+            
+            // Create a temporary internal URL for that file
+            const downloadUrl = window.URL.createObjectURL(blob); 
+            
+            // Create an invisible HTML link, attach the file, and click it
+            const a = document.createElement('a'); 
+            a.href = downloadUrl;
+            
+            // Name the file that will save to the user's Downloads folder
+            a.download = file.name.replace(".py", "_README.md"); 
+            
+            document.body.appendChild(a);
+            a.click(); 
+            
+            // Clean up the invisible link and update the screen
+            a.remove(); 
+            window.URL.revokeObjectURL(downloadUrl);
+            
+            document.getElementById("doc-display").innerText = "Success! Check your computer's Downloads folder.";
+        }
+    </script>
+</body>
+</html>
